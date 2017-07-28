@@ -135,6 +135,12 @@ public class Odin extends RateControlRobot
 		lastScannedTargets = null;
 	}
 	
+	@Override
+	public void onHitByBullet(HitByBulletEvent event) {
+		moving = true;
+		setVelocityRate(5);
+	}
+	
 	public void onBulletMissed (BulletMissedEvent e){
 		out.println("Bullet Missed " );
 		doFire = false;
