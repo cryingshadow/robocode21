@@ -17,7 +17,7 @@ import static robocode.util.Utils.normalRelativeAngleDegrees;
  */
 public class Odin extends RateControlRobot
 {
-	private Map<String, List<ScannedRobotEvent>> targetMap = new HashMap <String, List<ScannedRobotEvent>>();
+	private Map<String, ScannedRobotEvent> targetMap = new HashMap <String, ScannedRobotEvent>();
 	private Map<String, Integer> lastScannedTargets = new HashMap <String, Integer>();
 	private ScannedRobotEvent lastEvent;
 	private boolean doFire = false; 
@@ -47,10 +47,10 @@ public class Odin extends RateControlRobot
 		lastEvent = e;
 		// Replace the next line with any behavior you would like
 		if (!targetMap.containsKey(e.getName())){
-			List<ScannedRobotEvent> targetList = new ArrayList<ScannedRobotEvent>();
-			targetMap.put(e.getName(), targetList);
+//			List<ScannedRobotEvent> targetList = new ArrayList<ScannedRobotEvent>();
+			targetMap.put(e.getName(), e);
 		}
-		targetMap.get(e.getName()).add(e);
+//		targetMap.get(e.getName()).add(e);
 		out.println("Target: " + e.getName() + "; Bearing: " + e.getBearing() + "; Distance: " + e.getDistance() + "; Heading: " + e.getHeading() + "; Energy: " + e.getEnergy());
 
 		if (lastScannedTargets == null) {
@@ -109,14 +109,32 @@ public class Odin extends RateControlRobot
 	}	
 	
 	private void moveGunAndFire(){
-		if (lastEvent != null){
-			double gunRotation = normalRelativeAngleDegrees(lastEvent.getBearing() + (getHeading() - getGunHeading()));
+		ScannedRobotEvent closestTarget = getClosestTarget();
+		if (closestTarget != null){
+			double gunRotation = normalRelativeAngleDegrees(closestTarget.getBearing() + (getHeading() - getGunHeading()));
 			
 			setGunRotationRate (gunRotation);
 			if (gunRotation < 3){
-				setFireBullet(3);
+				setFireBullet(5);
 			}
 			out.println("getHeading: " + getHeading() + "getGunHeading: " + getGunHeading() + "gunRotation: " + gunRotation);
 		}
+	}
+	
+	private ScannedRobotEvent getClosestTarget(){
+		double minVal = 10000;
+		ScannedRobotEvent retVal = null;
+		
+		for (Map.Entry<String, ScannedRobotEvent> entry : targetMap.entrySet()) {
+		    String key = entry.getKey();
+		    ScannedRobotEvent value = entry.getValue();
+		    
+		    if (value.getDistance() < minVal){
+		    	minVal = value.getDistance();
+		    	retVal = value;
+		    }
+		}
+		
+		return retVal;
 	}
 }
