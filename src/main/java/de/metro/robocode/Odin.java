@@ -23,19 +23,30 @@ public class Odin extends RateControlRobot
 	private boolean doFire = false; 
 	
 	private int count=0;
+	private int direction = 1; // 1 - up, 2 - right, 3 - down, 4 - left
+	private double maxX = -1;
+	private double maxY = -1;
+	
 	/**
 	 * run: OdinsHammerV2's default behavior
 	 */
 	public void run() {
 		// Initialization of the robot should be put here
 		initialize();
+		maxX = getBattleFieldWidth();
+		maxY = getBattleFieldHeight();
+		
+		setTurnGunLeft(0);
+		setVelocityRate(5);
 
 		// Robot main loop
 		while(true) {
 			// Replace the next 4 lines with any behavior you would like
 			count++;
+			
 			moveRadarAndGetTargets();
 			moveGunAndFire();
+			moveRobot();
 			execute();
 		}
 	}
@@ -58,13 +69,14 @@ public class Odin extends RateControlRobot
 		}
 		lastScannedTargets.put(e.getName(), count);
 	}
-
+	
 	/**
 	 * onHitByBullet: What to do when you're hit by a bullet
 
 	public void onHitByBullet(HitByBulletEvent e) {
 		// Replace the next line with any behavior you would like
-		back(10);
+		out.println("WE ARE HIT !\nMOVE BACK WITH 10 pixels.");
+		setBack(10);
 	}
 	 */	
 	/**
@@ -74,7 +86,8 @@ public class Odin extends RateControlRobot
 		// Replace the next line with any behavior you would like
 		back(20);
 	}	
-	 */	
+	 */
+	
     private void initialize(){
 		// Set colors
 		setBodyColor(Color.green);
@@ -85,9 +98,10 @@ public class Odin extends RateControlRobot
 		
 		//keep radar still on turn
 		setAdjustRadarForGunTurn(false);
+//		setVelocityRate(10);
 	}
 	
-	private void moveRadarAndGetTargets(){
+	private void moveRadarAndGetTargets() {
 		final int defaultRadarRotation = 45;
 		setRadarRotationRate(defaultRadarRotation);
 		if (getRadarHeading() + defaultRadarRotation > 360){
@@ -108,7 +122,55 @@ public class Odin extends RateControlRobot
 		doFire = false;
 	}	
 	
-	private void moveGunAndFire(){
+	private void moveRobot() {
+		if (direction == 1) {
+			if (getHeading() != 0) {
+				setTurnRate(getHeading() < 360 - getHeading() ? -getHeading() : 360 - getHeading());
+			} else {
+				setTurnRate(0);
+			}
+			if (getY() >= maxY - 160) {
+				direction = 2;
+				setTurnRate(90);
+			}
+		}
+		if (direction == 2) {
+			if (getHeading() != 90) {
+				setTurnRate(-1 * (getHeading() - 90));
+			} else {
+				setTurnRate(0);
+			}
+			if (getX() >= maxX - 160) { 
+				direction = 3;
+				setTurnRate(90);
+			}
+				
+		}
+		if (direction == 3) {
+			if (getHeading() != 180) {
+				setTurnRate(-1 * (getHeading() - 180));
+			} else {
+				setTurnRate(0);
+			}
+			if (getY() <= 160) {
+				direction = 4;
+				setTurnRate(90);
+			}
+		}
+		if (direction == 4) {
+			if (getHeading() != 270) {
+				setTurnRate(-1 * (getHeading() - 270));
+			} else {
+				setTurnRate(0);
+			}
+			if (getX() <= 160) {
+				direction = 1;
+				setTurnRate(90);
+			}
+		}		
+	}
+	
+	private void moveGunAndFire() {
 		ScannedRobotEvent closestTarget = getClosestTarget();
 		if (closestTarget != null){
 			double gunRotation = normalRelativeAngleDegrees(closestTarget.getBearing() + (getHeading() - getGunHeading()));

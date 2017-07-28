@@ -16,7 +16,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <robotlocation>./robots</robotlocation>
+        <!-- <robotlocation>./robots</robotlocation> -->
+        <robotlocation>c:\robocode\robots\</robotlocation>
     </properties>
 
     <build>
