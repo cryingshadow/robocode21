@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import static java.lang.Math.abs;
+import static robocode.util.Utils.normalRelativeAngleDegrees;
 
 // API help : http://robocode.sourceforge.net/docs/robocode/robocode/Robot.html
 
@@ -18,7 +19,8 @@ public class Odin extends RateControlRobot
 {
 	private Map<String, List<ScannedRobotEvent>> targetMap = new HashMap <String, List<ScannedRobotEvent>>();
 	private Map<String, Integer> lastScannedTargets = new HashMap <String, Integer>();
-	private ScannedRobotEvent lastEvent; 
+	private ScannedRobotEvent lastEvent;
+	private boolean doFire = false; 
 	
 	private int count=0;
 	/**
@@ -50,7 +52,7 @@ public class Odin extends RateControlRobot
 		}
 		targetMap.get(e.getName()).add(e);
 		out.println("Target: " + e.getName() + "; Bearing: " + e.getBearing() + "; Distance: " + e.getDistance() + "; Heading: " + e.getHeading() + "; Energy: " + e.getEnergy());
-		
+
 		if (lastScannedTargets == null) {
 			lastScannedTargets = new HashMap <String, Integer>();			
 		}
@@ -59,20 +61,20 @@ public class Odin extends RateControlRobot
 
 	/**
 	 * onHitByBullet: What to do when you're hit by a bullet
-	 */
+
 	public void onHitByBullet(HitByBulletEvent e) {
 		// Replace the next line with any behavior you would like
 		back(10);
 	}
-	
+	 */	
 	/**
 	 * onHitWall: What to do when you hit a wall
-	 */
+
 	public void onHitWall(HitWallEvent e) {
 		// Replace the next line with any behavior you would like
 		back(20);
 	}	
-	
+	 */	
     private void initialize(){
 		// Set colors
 		setBodyColor(Color.green);
@@ -82,7 +84,7 @@ public class Odin extends RateControlRobot
 		setBulletColor(Color.blue);
 		
 		//keep radar still on turn
-		setAdjustRadarForGunTurn(true);
+		setAdjustRadarForGunTurn(false);
 	}
 	
 	private void moveRadarAndGetTargets(){
@@ -101,7 +103,20 @@ public class Odin extends RateControlRobot
 		lastScannedTargets = null;
 	}
 	
+	public void onBulletMissed (BulletMissedEvent e){
+		out.println("Bullet Missed " );
+		doFire = false;
+	}	
+	
 	private void moveGunAndFire(){
-		out.println("getGunHeading: " + getGunHeading()); 		
+		if (lastEvent != null){
+			double gunRotation = normalRelativeAngleDegrees(lastEvent.getBearing() + (getHeading() - getGunHeading()));
+			
+			setGunRotationRate (gunRotation);
+			if (gunRotation < 3){
+				setFireBullet(3);
+			}
+			out.println("getHeading: " + getHeading() + "getGunHeading: " + getGunHeading() + "gunRotation: " + gunRotation);
+		}
 	}
 }
