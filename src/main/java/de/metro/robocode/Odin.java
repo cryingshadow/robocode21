@@ -26,6 +26,7 @@ public class Odin extends RateControlRobot
 	private int direction = 1; // 1 - up, 2 - right, 3 - down, 4 - left
 	private double maxX = -1;
 	private double maxY = -1;
+	private boolean moving = true;
 	
 	/**
 	 * run: OdinsHammerV2's default behavior
@@ -37,18 +38,35 @@ public class Odin extends RateControlRobot
 		maxY = getBattleFieldHeight();
 		
 		setTurnGunLeft(0);
-		setVelocityRate(5);
+		setVelocityRate(7);
 
 		// Robot main loop
 		while(true) {
 			// Replace the next 4 lines with any behavior you would like
 			count++;
 			
+//			if (count % 7 == 0) {
+//				if (getVelocity() == 7) {
+//					setVelocityRate(2);
+//				} else {
+//					setVelocityRate(7);
+//				}
+//			}
+			
 			moveRadarAndGetTargets();
 			moveGunAndFire();
 			moveRobot();
 			execute();
 		}
+	}
+	
+	@Override
+	public void onHitRobot(HitRobotEvent event) {
+		direction += 1;
+		if (direction > 4) {
+			direction = 1;
+		}
+		setTurnRate(90);
 	}
 
 	/**
@@ -97,7 +115,7 @@ public class Odin extends RateControlRobot
 		setBulletColor(Color.blue);
 		
 		//keep radar still on turn
-		setAdjustRadarForGunTurn(false);
+		setAdjustRadarForGunTurn(true);
 //		setVelocityRate(10);
 	}
 	
@@ -123,6 +141,18 @@ public class Odin extends RateControlRobot
 	}	
 	
 	private void moveRobot() {
+		ScannedRobotEvent sre = getClosestTarget();
+		if (sre != null && sre.getDistance() <= 100) {
+			moving = false;
+			setVelocityRate(0);
+			setTurnRate(0);
+		} else if (sre == null || sre.getDistance() >= 300) {
+			moving = true;
+			setVelocityRate(5);
+		}
+		if (!moving) {
+			return;
+		}
 		if (direction == 1) {
 			if (getHeading() != 0) {
 				setTurnRate(getHeading() < 360 - getHeading() ? -getHeading() : 360 - getHeading());
@@ -183,7 +213,7 @@ public class Odin extends RateControlRobot
 		}
 	}
 	
-	private ScannedRobotEvent getClosestTarget(){
+	private ScannedRobotEvent getClosestTarget() {
 		double minVal = 10000;
 		ScannedRobotEvent retVal = null;
 		
